@@ -29,50 +29,54 @@ const NegotiationScreen = () => {
     const estimated = parseFloat(estimated_price as string);
     const cargoWeight = parseFloat(kgToBook as string);
     const tripDistance = parseFloat(distance as string);
-
+  
     if (isNaN(offer) || offer <= 0) {
       return Alert.alert("Invalid Offer", "Please enter a valid offer.");
     }
-
+  
     if (isNaN(estimated)) {
       console.log("Estimated Price from Params:", estimated_price);
       return Alert.alert("Error", "Estimated price is missing or invalid.");
     }
-
+  
     if (isNaN(cargoWeight) || isNaN(tripDistance)) {
       return Alert.alert("Error", "Cargo weight or distance is invalid.");
     }
-
+  
     // Fetch truck details
     const { data: truck, error: truckError } = await supabase
       .from("trucks")
       .select("capacity_kg, filled_capacity")
       .eq("truck_id", truck_id)
       .single();
-
+  
     if (truckError || !truck) {
       return Alert.alert("Error", "Truck details not found.");
     }
-
+  
     const { capacity_kg, filled_capacity } = truck;
-
+  
     if (filled_capacity + cargoWeight > capacity_kg) {
       return Alert.alert("Error", "Truck cannot carry this much weight.");
     }
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
+  
+    // Fetch user data
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
     if (authError || !user) {
       return Alert.alert("Error", "User not logged in.");
     }
-
-    const dealerAccepts = Math.random() < 0.5;
-    const finalPrice = dealerAccepts ? offer : estimated;
-
-    // Insert booking
+  
+    const dealerAccepts = Math.random() < 0.5; // Random acceptance decision
+  
+    if (!dealerAccepts) {
+      return Alert.alert("❌ Offer Rejected", "The dealer has rejected your offer.");
+    }
+  
+    // Proceed with booking if the offer is accepted
+    const finalPrice = offer;
+  
+    // Insert booking into the database
     const { error: insertError } = await supabase.from("bookings").insert([
       {
         user_id: user.id,
@@ -86,29 +90,30 @@ const NegotiationScreen = () => {
         status: "pending",
       },
     ]);
-
+  
     if (insertError) {
       console.error(insertError);
       return Alert.alert("Error", "Booking failed.");
     }
-
+  
     // Update truck capacity
     const { error: updateError } = await supabase
       .from("trucks")
       .update({ filled_capacity: filled_capacity + cargoWeight })
       .eq("truck_id", truck_id);
-
+  
     if (updateError) {
       console.error(updateError);
       return Alert.alert("Error", "Failed to update truck capacity.");
     }
-
+  
     Alert.alert(
-      dealerAccepts ? "🎉 Offer Accepted!" : "❌ Offer Rejected",
+      "🎉 Offer Accepted!",
       `Final Price: ₹${finalPrice}`
     );
     router.push("/MapScreen/MapScreen");
   };
+  
 
   return (
     <View style={styles.container}>
