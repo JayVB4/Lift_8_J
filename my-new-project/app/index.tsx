@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-
+import LogoSVG from '../assets/images/logo.svg';
 const OnboardingScreen = () => {
   const router = useRouter();
 
@@ -10,7 +10,8 @@ const OnboardingScreen = () => {
       {/* Logo and Image */}
       <View style={styles.imageContainer}>
         <Text style={styles.logo}>LIFT<Text style={styles.logoNumber}>8</Text></Text>
-        <Image source={require("../assets/images/truck.png")} style={styles.image} />
+        {/* <Image source={require("../assets/images/splashScreen.svg")} style={styles.image} /> */}
+        <LogoSVG />
       </View>
 
       {/* Title & Description */}
@@ -49,8 +50,8 @@ const styles = StyleSheet.create({
     color: "#5078F2",
   },
   image: {
-    width: 200,
-    height: 150,
+    width: 400,
+    height: 400,
     resizeMode: "contain",
     marginVertical: 20,
   },
